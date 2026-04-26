@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: browser-monitor
+    runtime: python
+    buildCommand: |
+      apt-get update && apt-get install -y chromium chromium-driver
+      pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.12
+    plan: free
