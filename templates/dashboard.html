@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Browser Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .header h1 { font-size: 24px; font-weight: 700; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            font-size: 14px;
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 30px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-card i { font-size: 32px; margin-bottom: 10px; }
+        .stat-value { font-size: 32px; font-weight: 800; }
+        .stat-label { color: rgba(255, 255, 255, 0.6); font-size: 12px; margin-top: 5px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 40px 40px; }
+        .add-btn {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+        .monitors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 20px;
+        }
+        .monitor-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .monitor-name { font-weight: 700; font-size: 16px; }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-online { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .status-offline { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .status-checking { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .status-pending { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+        .url-link {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .last-title {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            margin: 10px 0;
+        }
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-delete:hover { background: rgba(239, 68, 68, 0.3); }
+        .btn-check:hover { background: rgba(34, 197, 94, 0.3); }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+        }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn-save { background: #a855f7; border: none; padding: 8px 20px; border-radius: 8px; color: white; cursor: pointer; }
+        .btn-cancel { background: rgba(255, 255, 255, 0.1); border: none; padding: 8px 20px; border-radius: 8px; color: white; cursor: pointer; }
+        .footer { text-align: center; padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 30px; font-size: 12px; color: rgba(255, 255, 255, 0.4); }
+        .uptime-badge {
+            background: rgba(168, 85, 247, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            display: inline-block;
+        }
+        @media (max-width: 768px) {
+            .stats-container { grid-template-columns: repeat(2, 1fr); padding: 20px; }
+            .container { padding: 0 20px 20px; }
+            .monitors-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fas fa-eye"></i> Browser Monitor</h1>
+        <div class="user-info">
+            <span><i class="fas fa-user"></i> <span id="username"></span></span>
+            <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card"><i class="fas fa-chrome"></i><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total</div></div>
+        <div class="stat-card"><i class="fas fa-check-circle" style="color:#22c55e"></i><div class="stat-value" id="stat-online">0</div><div class="stat-label">Online</div></div>
+        <div class="stat-card"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i><div class="stat-value" id="stat-offline">0</div><div class="stat-label">Offline</div></div>
+        <div class="stat-card"><i class="fas fa-microchip"></i><div class="stat-value" id="stat-memory">0</div><div class="stat-label">Memory MB</div></div>
+    </div>
+
+    <div class="container">
+        <button class="add-btn" onclick="openModal()"><i class="fas fa-plus"></i> Add Monitor</button>
+        <div class="monitors-grid" id="monitors-grid"></div>
+    </div>
+
+    <div class="footer">Developer: RAJ MISHRA | Real Browser Monitor</div>
+
+    <div class="modal" id="monitorModal">
+        <div class="modal-content">
+            <h3><i class="fas fa-plus-circle"></i> Add Monitor</h3>
+            <input type="text" id="monitor-name" placeholder="Monitor Name">
+            <input type="url" id="monitor-url" placeholder="URL (https://...)">
+            <input type="number" id="monitor-interval" placeholder="Check Interval (minutes)" value="60" min="1">
+            <select id="monitor-timeout">
+                <option value="30">Timeout: 30 seconds</option>
+                <option value="45">Timeout: 45 seconds</option>
+                <option value="60">Timeout: 60 seconds</option>
+                <option value="90">Timeout: 90 seconds</option>
+                <option value="120">Timeout: 120 seconds</option>
+            </select>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-save" onclick="addMonitor()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUsername = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMonitors();
+            refreshStats();
+            setInterval(() => { loadMonitors(); refreshStats(); }, 30000);
+        });
+
+        async function loadMonitors() {
+            try {
+                const response = await fetch('/api/monitors');
+                const monitors = await response.json();
+                renderMonitors(monitors);
+                updateStats(monitors);
+            } catch (error) { console.error(error); }
+        }
+
+        function renderMonitors(monitors) {
+            const grid = document.getElementById('monitors-grid');
+            if (Object.keys(monitors).length === 0) {
+                grid.innerHTML = `<div style="text-align:center;padding:60px;background:rgba(255,255,255,0.05);border-radius:16px;"><i class="fas fa-chrome" style="font-size:50px;opacity:0.5"></i><p style="margin-top:15px">No monitors added</p></div>`;
+                return;
+            }
+            grid.innerHTML = '';
+            for (const [id, monitor] of Object.entries(monitors)) {
+                const statusClass = monitor.status === 'online' ? 'status-online' : monitor.status === 'offline' ? 'status-offline' : monitor.status === 'checking' ? 'status-checking' : 'status-pending';
+                const statusText = monitor.status ? monitor.status.toUpperCase() : 'PENDING';
+                const lastSuccess = monitor.last_success ? new Date(monitor.last_success).toLocaleString() : 'Never';
+                const lastCheck = monitor.last_check ? new Date(monitor.last_check).toLocaleString() : 'Never';
+                const uptime = monitor.uptime_display || '0m';
+                
+                const card = document.createElement('div');
+                card.className = 'monitor-card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="monitor-name"><i class="fas fa-tv"></i> ${escapeHtml(monitor.name)} <span class="uptime-badge"><i class="fas fa-clock"></i> ${uptime}</span></div>
+                        <div class="status-badge ${statusClass}"><i class="fas ${monitor.status === 'checking' ? 'fa-spinner fa-pulse' : 'fa-circle'}"></i> ${statusText}</div>
+                    </div>
+                    <div class="url-link"><i class="fas fa-link"></i> ${escapeHtml(monitor.url.substring(0, 70))}${monitor.url.length > 70 ? '...' : ''}</div>
+                    <div class="info-row"><span>⏰ Interval:</span><span>Every ${monitor.interval_minutes} min</span></div>
+                    <div class="info-row"><span>⏱️ Timeout:</span><span>${monitor.timeout || 30} sec</span></div>
+                    ${monitor.last_title ? `<div class="last-title"><i class="fas fa-info-circle"></i> ${escapeHtml(monitor.last_title)}</div>` : ''}
+                    ${monitor.error ? `<div class="last-title" style="background:rgba(239,68,68,0.1);color:#ef4444"><i class="fas fa-exclamation-circle"></i> ${escapeHtml(monitor.error)}</div>` : ''}
+                    <div class="info-row"><span>✅ Last Success:</span><span>${lastSuccess}</span></div>
+                    <div class="info-row"><span>🔍 Last Check:</span><span>${lastCheck}</span></div>
+                    <div class="card-actions">
+                        <button class="btn-icon btn-check" onclick="checkNow('${id}')"><i class="fas fa-play"></i> Check</button>
+                        <button class="btn-icon" onclick="toggleMonitor('${id}')"><i class="fas fa-power-off"></i> ${monitor.enabled !== false ? 'Disable' : 'Enable'}</button>
+                        <button class="btn-icon btn-delete" onclick="deleteMonitor('${id}')"><i class="fas fa-trash"></i> Delete</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        async function addMonitor() {
+            const name = document.getElementById('monitor-name').value;
+            const url = document.getElementById('monitor-url').value;
+            const interval = document.getElementById('monitor-interval').value;
+            const timeout = document.getElementById('monitor-timeout').value;
+            if (!name || !url) { alert('Enter name and URL'); return; }
+            try {
+                await fetch('/api/monitor/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, url, interval_minutes: parseInt(interval), timeout: parseInt(timeout) }) });
+                closeModal(); loadMonitors(); refreshStats();
+            } catch (error) { alert('Error'); }
+        }
+
+        async function deleteMonitor(id) { if (confirm('Delete this monitor?')) { await fetch(`/api/monitor/delete/${id}`, { method: 'DELETE' }); loadMonitors(); refreshStats(); } }
+        async function toggleMonitor(id) { await fetch(`/api/monitor/toggle/${id}`, { method: 'POST' }); loadMonitors(); }
+        async function checkNow(id) { 
+            const btn = event.target.closest('.btn-check');
+            if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Checking...'; btn.disabled = true; }
+            await fetch(`/api/monitor/check/${id}`, { method: 'POST' }); 
+            setTimeout(() => { loadMonitors(); refreshStats(); }, 8000);
+        }
+        async function refreshStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                document.getElementById('stat-total').textContent = stats.total || 0;
+                document.getElementById('stat-online').textContent = stats.online || 0;
+                document.getElementById('stat-offline').textContent = stats.offline || 0;
+                document.getElementById('stat-memory').textContent = stats.memory_usage || '0';
+            } catch (error) {}
+        }
+        function updateStats(monitors) {
+            let online = 0, offline = 0, checking = 0;
+            for (const m of Object.values(monitors)) {
+                if (m.status === 'online') online++;
+                else if (m.status === 'offline') offline++;
+                else if (m.status === 'checking') checking++;
+            }
+            document.getElementById('stat-online').textContent = online;
+            document.getElementById('stat-offline').textContent = offline;
+            document.getElementById('stat-total').textContent = Object.keys(monitors).length;
+        }
+        function openModal() { document.getElementById('monitorModal').style.display = 'flex'; document.getElementById('monitor-name').value = ''; document.getElementById('monitor-url').value = ''; document.getElementById('monitor-interval').value = '60'; }
+        function closeModal() { document.getElementById('monitorModal').style.display = 'none'; }
+    </script>
+</body>
+</html>
